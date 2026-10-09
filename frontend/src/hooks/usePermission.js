@@ -1,23 +1,2 @@
-import { useMemo } from "react";
-import permissionService from "../services/permissions";
-import { getProfile } from "../utils/tokenManager";
-
-export function usePermission(module) {
-  const profile = getProfile();
-
-  return useMemo(() => {
-    if (!profile) {
-      return { canRead: false, canWrite: false, profile: null };
-    }
-
-    permissionService.setCurrentUser(profile);
-
-    return {
-      profile,
-      canRead: module ? permissionService.canRead(module) : false,
-      canWrite: module ? permissionService.canWrite(module) : false,
-    };
-  }, [module, profile]);
-}
-
-export default usePermission;
+import useAuth from './useAuth'
+export default function usePermission(permission) { const {user}=useAuth(); const permissions=user?.permissions||[]; return permissions.includes('*')||permissions.includes(permission)||permissions.some((p)=>p.endsWith('.*')&&permission.startsWith(p.slice(0,-1))) }

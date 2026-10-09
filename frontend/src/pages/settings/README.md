@@ -1,4 +1,1 @@
-# settings pages
-
-Place route-level screens for this domain here.
-
+School and account settings screens are organized here.

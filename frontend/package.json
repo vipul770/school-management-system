@@ -1,39 +1,9 @@
 {
-  "name": "frontend",
+  "name": "sms-frontend",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
-    "@hookform/resolvers": "^3.9.0",
-    "@mui/icons-material": "^6.5.0",
-    "@mui/material": "^6.1.6",
-    "axios": "^1.7.7",
-    "date-fns": "^4.1.0",
-    "lucide-react": "^1.14.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-hook-form": "^7.53.1",
-    "react-query": "^3.39.3",
-    "react-router-dom": "^6.28.0",
-    "yup": "^1.4.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.3",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.15.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.15",
-    "vite": "^6.0.1"
-  }
+  "scripts": {"dev": "vite --host 0.0.0.0 --port 3001", "build": "vite build", "preview": "vite preview --host 0.0.0.0"},
+  "dependencies": {"@reduxjs/toolkit": "^2.5.0", "@sentry/react": "^8.47.0", "axios": "^1.7.9", "lucide-react": "^0.468.0", "react": "^18.3.1", "react-dom": "^18.3.1", "react-redux": "^9.2.0", "react-router-dom": "^6.28.1", "recharts": "^2.15.0"},
+  "devDependencies": {"@vitejs/plugin-react": "^4.3.4", "autoprefixer": "^10.4.20", "postcss": "^8.4.49", "tailwindcss": "^3.4.17", "typescript": "^5.7.2", "vite": "^6.0.5"}
 }

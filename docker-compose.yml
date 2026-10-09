@@ -1,45 +1,61 @@
-version: '3.8'
 services:
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - '8000:8000'
-    environment:
-      - DATABASE_URL=sqlite:///./data_new.db
-      - ENVIRONMENT=development
-    volumes:
-      - ./backend:/app
-      - ./backend/data_new.db:/app/data_new.db
-    restart: unless-stopped
-    
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - '3001:3001'
-    depends_on:
-      - backend
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    restart: unless-stopped
-
-  postgres:
+  db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: school_management
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
+      POSTGRES_DB: ${POSTGRES_DB:-sms}
+      POSTGRES_USER: ${POSTGRES_USER:-sms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms} -d ${POSTGRES_DB:-sms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      SECURE_SSL_REDIRECT: "false"
+      SECURE_COOKIES: "false"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sms}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-sms}
+      REDIS_URL: redis://redis:6379/0
+    command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  celery:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      SECURE_SSL_REDIRECT: "false"
+      SECURE_COOKIES: "false"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sms}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-sms}
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A config worker -l info
+    depends_on: [backend, redis]
+  celery-beat:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      SECURE_SSL_REDIRECT: "false"
+      SECURE_COOKIES: "false"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sms}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-sms}
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A config beat -l info
+    depends_on: [backend, redis]
+  nginx:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [backend]
 volumes:
   postgres_data:

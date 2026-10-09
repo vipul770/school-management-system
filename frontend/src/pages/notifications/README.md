@@ -1,4 +1,1 @@
-# notifications pages
-
-Place route-level screens for this domain here.
-
+Notifications screens are organized here.

@@ -1,4 +1,1 @@
-# teachers pages
-
-Place route-level screens for this domain here.
-
+Teacher directory screens are organized here.

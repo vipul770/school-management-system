@@ -1,4 +1,1 @@
-# attendance pages
-
-Place route-level screens for this domain here.
-
+Attendance workflows are organized here.

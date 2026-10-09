@@ -1,4 +1,1 @@
-# students pages
-
-Place route-level screens for this domain here.
-
+Student directory and enrollment screens are organized here.

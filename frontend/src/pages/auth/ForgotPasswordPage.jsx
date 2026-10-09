@@ -1,0 +1,11 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { api } from '../../services/api'
+import AuthLayout from '../../components/layouts/AuthLayout'
+
+export default function ForgotPasswordPage() {
+  const [email,setEmail]=useState('');const [otp,setOtp]=useState('');const [password,setPassword]=useState('');const [sent,setSent]=useState(false);const [done,setDone]=useState(false);const [error,setError]=useState('')
+  async function requestCode(e){e.preventDefault();setError('');try{await api.post('/auth/password-reset/',{email});setSent(true)}catch(ex){setError(ex.response?.data?.detail||'Unable to request a reset code.')}}
+  async function reset(e){e.preventDefault();setError('');try{await api.post('/auth/password-reset/confirm/',{email,otp,new_password:password});setDone(true)}catch(ex){setError(ex.response?.data?.detail||'The reset code could not be verified.')}}
+  return <AuthLayout><div className="login-card"><div className="eyebrow page-eyebrow">ACCOUNT ACCESS</div><h2>{done?'Password updated':sent?'Enter your reset code':'Reset your password'}</h2><p className="subheading">{done?'You can sign in with your new password.':sent?'Check your school email for the six-digit verification code.':'We will send a one-time code to your school email.'}</p>{!done&&<form onSubmit={sent?reset:requestCode}><div className="field-group"><label className="field-label" htmlFor="reset-email">Email address</label><input className="field" type="email" id="reset-email" value={email} onChange={e=>setEmail(e.target.value)} required disabled={sent}/></div>{sent&&<><div className="field-group"><label className="field-label" htmlFor="otp">Verification code</label><input className="field" id="otp" inputMode="numeric" value={otp} onChange={e=>setOtp(e.target.value)} required/></div><div className="field-group"><label className="field-label" htmlFor="new-password">New password</label><input className="field" type="password" id="new-password" minLength={10} value={password} onChange={e=>setPassword(e.target.value)} required/></div></>}{error&&<p className="error-message">{error}</p>}<button className="sign-in-button">{sent?'Update password':'Send reset code'}</button></form>}<div className="login-footer"><Link to="/login">Back to sign in</Link></div></div></AuthLayout>
+}

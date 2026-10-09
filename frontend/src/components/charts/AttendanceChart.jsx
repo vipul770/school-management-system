@@ -1,0 +1,3 @@
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+
+export default function AttendanceChart({ rate=0 }) { const value=Math.min(100,Math.max(0,Number(rate)||0));return <div className="attendance-chart" role="img" aria-label={`Attendance rate ${value} percent`}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={[{name:'Present',value},{name:'Remaining',value:100-value}]} dataKey="value" innerRadius="70%" outerRadius="94%" startAngle={90} endAngle={-270} stroke="none"><Cell fill="#75aa9d"/><Cell fill="#e7eeec"/></Pie><Tooltip formatter={(v)=>`${v}%`}/></PieChart></ResponsiveContainer><strong>{value}%</strong></div> }

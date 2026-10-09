@@ -1,4 +1,1 @@
-# fees pages
-
-Place route-level screens for this domain here.
-
+Fee and payment screens are organized here.

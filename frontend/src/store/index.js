@@ -1,12 +1,7 @@
-import { authInitialState } from "./slices/authSlice";
-import { uiInitialState } from "./slices/uiSlice";
-import { schoolInitialState } from "./slices/schoolSlice";
+import { configureStore } from '@reduxjs/toolkit'
+import authReducer from './slices/authSlice'
+import uiReducer from './slices/uiSlice'
+import schoolReducer from './slices/schoolSlice'
+import { api } from './services/api'
 
-// Placeholder store shape so future Redux Toolkit wiring has a single source of truth.
-export function getStoreBlueprint() {
-  return {
-    auth: authInitialState,
-    ui: uiInitialState,
-    school: schoolInitialState,
-  };
-}
+export const store = configureStore({ reducer: { auth: authReducer, ui: uiReducer, school: schoolReducer, [api.reducerPath]: api.reducer }, middleware: (getDefault) => getDefault().concat(api.middleware) })

@@ -1,4 +1,1 @@
-# exams pages
-
-Place route-level screens for this domain here.
-
+Exam management screens are organized here.

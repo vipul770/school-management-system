@@ -1,100 +1,32 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import App from "./pages/home/LandingPage";
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/RequestOrganisation";
-import RequestOrganisation from "./pages/auth/RequestOrganisation";
-import OrganisationLogin from "./pages/auth/OrganisationLogin";
-import ModuleCenter from "./pages/modules/ModuleCenter";
-import ModuleDetail from "./pages/modules/ModuleDetail";
-import RolePermissions from "./pages/modules/RolePermissions";
-import SuperadminDashboard from "./pages/dashboard/SuperadminDashboard";
-import AdminDashboard from "./pages/dashboard/AdminDashboard";
-import SchoolDashboard from "./pages/dashboard/SchoolDashboard";
-import TeacherDashboard from "./pages/dashboard/TeacherDashboard";
-import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import ParentDashboard from "./pages/dashboard/ParentDashboard";
-import AccountantDashboard from "./pages/dashboard/AccountantDashboard";
-import LibrarianDashboard from "./pages/dashboard/LibrarianDashboard";
-import RegisterSchool from "./pages/auth/RegisterSchool";
-import { getDashboardPath } from "./utils/dashboardPath";
-import "./styles.css";
-import ClassroomsDashboard from "./pages/dashboard/ClassroomsDashboard";
-import StudentsDashboard from "./pages/dashboard/StudentsDashboard";
-import TeachersDashboard from "./pages/dashboard/TeachersDashboard";
-import ClassDetails from "./pages/dashboard/ClassDetails";
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import LoginPage from './pages/auth/LoginPage'
+import DashboardPage from './pages/dashboard/DashboardPage'
+import ProtectedRoute from './components/guards/ProtectedRoute'
+import RoleGuard from './components/guards/RoleGuard'
+import AdminLayout from './components/layouts/AdminLayout'
+import ModulePage from './pages/ModulePage'
+import { currentUser, refresh } from './services/authService'
+import { signedIn, signedOut } from './store/slices/authSlice'
+import { modules } from './config/modules'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import SchoolOnboardingPage from './pages/auth/SchoolOnboardingPage'
+import UsersRolesPage from './pages/UsersRolesPage'
+import PlatformAdminPage from './pages/PlatformAdminPage'
+import useAuth from './hooks/useAuth'
 
-const Root = () => {
-  const [path, setPath] = React.useState(window.location.pathname);
-  const profile =
-    typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("profile") || "null")
-      : null;
+function SessionBootstrap() {
+  const dispatch = useDispatch()
+  useEffect(() => { let mounted = true; refresh().then(({data}) => currentUser().then((profile) => { if(mounted) dispatch(signedIn({access:data.access,user:profile.data})) })).catch(() => { if(mounted) dispatch(signedOut()) }); return () => { mounted = false } }, [dispatch])
+  return null
+}
 
-  React.useEffect(() => {
-    const onPopState = () => {
-      setPath(window.location.pathname);
-    };
+function DashboardRoute() {
+  const { user } = useAuth()
+  return user?.role === 'super_admin' ? <PlatformAdminPage/> : <DashboardPage/>
+}
 
-    window.addEventListener("popstate", onPopState);
-
-    return () => {
-      window.removeEventListener("popstate", onPopState);
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (path === "/signup") {
-      window.location.href = "/register-school";
-    }
-  }, [path]);
-
-  // Handle redirects in useEffect instead of render
-  React.useEffect(() => {
-    if (path === "/user") {
-      const dashboardPath = getDashboardPath(profile);
-      if (dashboardPath) {
-        window.location.href = dashboardPath;
-      }
-    }
-  }, [path, profile]);
-
-  // Don't render anything while redirecting
-  if (path === "/signup" || path === "/user") {
-    return null;
-  }
-
-  return (
-    <div>
-      {path === "/classrooms-dashboard" && <ClassroomsDashboard />}
-      {path === "/students-dashboard" && <StudentsDashboard />}
-      {path === "/teachers-dashboard" && <TeachersDashboard />}
-      {path.startsWith("/class-details/") && <ClassDetails />}
-      {path === "/dashboard/superadmin" && <SuperadminDashboard />}
-      {path === "/dashboard/admin" && <AdminDashboard />}
-      {path === "/dashboard/school" && <SchoolDashboard />}
-      {path === "/dashboard/teacher" && <TeacherDashboard />}
-      {path === "/dashboard/student" && <StudentDashboard />}
-      {path === "/dashboard/parent" && <ParentDashboard />}
-      {path === "/dashboard/accountant" && <AccountantDashboard />}
-      {path === "/dashboard/librarian" && <LibrarianDashboard />}
-
-      {path === "/admin/role-permissions" && <RolePermissions />}
-      {path.startsWith("/admin") && <SchoolDashboard />} 
-      {path === "/login" && <OrganisationLogin />}
-      {path === "/login/credentials" && <Login />}
-      {path === "/register-school" && <RegisterSchool />}
-      {path === "/modules" && <ModuleCenter />}
-      {path.startsWith("/modules/") && (
-        <ModuleDetail slug={path.replace("/modules/", "").trim()} />
-      )}
-      {path === "/" && <App />}
-    </div>
-  );
-};
-
-createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <Root />
-  </React.StrictMode>
-);
+export default function App() {
+  return <><SessionBootstrap/><Routes><Route path="/login" element={<LoginPage />} /><Route path="/forgot-password" element={<ForgotPasswordPage/>}/><Route path="/register-school" element={<SchoolOnboardingPage/>}/><Route element={<ProtectedRoute><AdminLayout/></ProtectedRoute>}><Route path="/dashboard" element={<DashboardRoute/>}/><Route path="/platform/schools" element={<RoleGuard allowedRoles={['super_admin']}><PlatformAdminPage section="schools"/></RoleGuard>}/><Route path="/platform/users" element={<RoleGuard allowedRoles={['super_admin']}><PlatformAdminPage section="users"/></RoleGuard>}/><Route path="/platform/plans" element={<RoleGuard allowedRoles={['super_admin']}><PlatformAdminPage section="plans"/></RoleGuard>}/><Route path="/platform/audit" element={<RoleGuard allowedRoles={['super_admin']}><PlatformAdminPage section="audit"/></RoleGuard>}/><Route path="/users" element={<RoleGuard allowedRoles={['school_admin']}><UsersRolesPage/></RoleGuard>}/>{Object.entries(modules).map(([key])=><Route key={key} path={`/${key}`} element={<RoleGuard allowedRoles={key==='students'?['school_admin','teacher']:key==='teachers'||key==='settings'?['school_admin']:key==='fees'?['school_admin','accountant']:key==='reports'?['school_admin','accountant']:key==='my-school'?['student','parent']:key==='notifications'?['school_admin','teacher','student','parent']:['school_admin','teacher']}><ModulePage moduleKey={key}/></RoleGuard>}/>)}</Route><Route path="/" element={<Navigate to="/login" replace />} /><Route path="*" element={<Navigate to="/dashboard" replace />} /></Routes></>
+}
